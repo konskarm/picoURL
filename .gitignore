@@ -274,4 +274,8 @@ fabric.properties
 
 # Pyre type checker
 
+# Application specific
+
+secrets/
+
 # End of https://www.gitignore.io/api/python,django,pycharm

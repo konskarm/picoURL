@@ -1,6 +1,8 @@
+from django.shortcuts import get_object_or_404, redirect
 from rest_framework import generics, status
 from rest_framework.response import Response
 
+from url_shortener.models import URLMapping
 from .serializers import CreateURLMappingInputSerializer, CreateURLMappingOutputSerializer
 
 
@@ -16,3 +18,11 @@ class CreateURLMappingView(generics.CreateAPIView):
             return Response(output_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+def redirect_view(request, *args, **kwargs):
+    obj = get_object_or_404(URLMapping, short_code=kwargs['short_code'])
+    obj.times_used += 1
+    obj.save()
+    response = redirect(obj.original_url)
+    return response

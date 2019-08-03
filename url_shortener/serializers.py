@@ -53,3 +53,12 @@ class CreateURLMappingOutputSerializer(serializers.ModelSerializer):
         model = URLMapping
         fields = ('short_code',)
         read_only_fields = ('short_code',)
+
+
+class URLStatsSerializer(serializers.ModelSerializer):
+    """Serializer to map the model instance into json format for the stats view."""
+
+    class Meta:
+        """Map the serializer to the model, exposing the stats fields."""
+        model = URLMapping
+        fields = ('original_url', 'creation_date', 'times_used')

@@ -2,8 +2,8 @@ from django.shortcuts import get_object_or_404, redirect
 from rest_framework import generics, status
 from rest_framework.response import Response
 
-from url_shortener.models import URLMapping
-from .serializers import CreateURLMappingInputSerializer, CreateURLMappingOutputSerializer
+from .models import URLMapping
+from .serializers import CreateURLMappingInputSerializer, URLStatsSerializer, CreateURLMappingOutputSerializer
 
 
 class CreateURLMappingView(generics.CreateAPIView):
@@ -26,3 +26,11 @@ def redirect_view(request, *args, **kwargs):
     obj.save()
     response = redirect(obj.original_url)
     return response
+
+
+class UsageDetailsView(generics.RetrieveAPIView):
+
+    def get(self, request, *args, **kwargs):
+        obj = get_object_or_404(URLMapping, short_code=kwargs['short_code'])
+        serializer = URLStatsSerializer(obj)
+        return Response(serializer.data)

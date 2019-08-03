@@ -105,3 +105,42 @@ class RedirectViewTestCase(TestCase):
             reverse('redirect', kwargs={"short_code": 'random'})
         )
         self.assertEqual(bad_get_response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class UsageDetailsViewTestCase(TestCase):
+    """
+    Tests the view that returns the usage statistics of a short_code.
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+        self.original_url = "https://ultimaker.com/en/knowledge/33-reducing-costs-and-improving-efficiency-with-the-ultimaker-s5"
+        self.input_data = {'original_url': self.original_url}
+
+        self.post_response = self.client.post(
+            reverse('create'),
+            self.input_data,
+            format='json'
+        )
+
+    def test_details_view_returns_correct_data(self):
+        """
+        Tests whether the response contains the correct data.
+        """
+        get_response = self.client.get(
+            reverse('short-code-stats', kwargs={"short_code": self.post_response.data['short_code']})
+        )
+        self.assertEqual(get_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(get_response.data), 3)
+        self.assertEqual(['original_url', 'creation_date', 'times_used'], list(get_response.data.keys()))
+        self.assertEqual(get_response.data['original_url'], self.original_url)
+        self.assertEqual(get_response.data['times_used'], 0)
+
+    def test_details_view_returns_404_on_wrong_short_code(self):
+        """
+        Tests whether the response status is 404 if the given short code does not exist in the database.
+        """
+        get_response = self.client.get(
+            reverse('short-code-stats', kwargs={"short_code": "random"})
+        )
+        self.assertEqual(get_response.status_code, status.HTTP_404_NOT_FOUND)

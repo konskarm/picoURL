@@ -24,16 +24,17 @@ class CreateURLMappingInputSerializer(serializers.ModelSerializer):
         """
         url = validated_data['original_url']
         url_hasher = URLHasher()
-        short_code = url_hasher.hash(url, size=CONFIG.SHORT_CODE_SIZE)
+        short_code = url_hasher.hash(url)
 
         # Rehash the url if it collides with an existing short_code.
         # To avoid the infinite loop, we will rehash up to a maximum number of times.
         retries = 0
         while URLMapping.objects.filter(short_code=short_code).exists():
-            short_code = url_hasher.rehash(size=CONFIG.SHORT_CODE_SIZE)
+            short_code = url_hasher.rehash()
             retries += 1
-            if retries == CONFIG.MAX_HASHING_RETRIES + 1:
+            if retries > CONFIG.MAX_HASHING_RETRIES:
                 response_error = "Failed to find a unique hash after {} retries.".format(CONFIG.MAX_HASHING_RETRIES)
+                # TODO We could specify a specific 5xx error in this case instead of using the generic one
                 return Response({"Fail": response_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return URLMapping.objects.create(

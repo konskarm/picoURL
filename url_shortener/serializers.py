@@ -6,7 +6,7 @@ from utils.hasher import URLHasher
 from .models import URLMapping
 
 
-class CreateURLMappingInputSerializer(serializers.ModelSerializer):
+class CreateURLMappingSerializer(serializers.ModelSerializer):
     """
     Serializer to map the model instance to json format. Intended for use as the input
     serializer in the create view.
@@ -15,7 +15,8 @@ class CreateURLMappingInputSerializer(serializers.ModelSerializer):
     class Meta:
         """Map the serializer to the model, exposing only the original_url field."""
         model = URLMapping
-        fields = ('original_url',)
+        fields = ('original_url', 'short_code',)
+        read_only_fields = ('short_code',)
 
     def create(self, validated_data):
         """
@@ -41,19 +42,6 @@ class CreateURLMappingInputSerializer(serializers.ModelSerializer):
             short_code=short_code,
             **validated_data
         )
-
-
-class CreateURLMappingOutputSerializer(serializers.ModelSerializer):
-    """
-    Serializer to map the model instance to json format. Intended for use as the output
-    serializer in the create view.
-    """
-
-    class Meta:
-        """Map the serializer to the model, exposing only the short_code field."""
-        model = URLMapping
-        fields = ('short_code',)
-        read_only_fields = ('short_code',)
 
 
 class URLStatsSerializer(serializers.ModelSerializer):

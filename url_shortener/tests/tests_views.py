@@ -3,22 +3,23 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from url_shortener.models import URLMapping
-
 
 class CreateURLMappingViewTestCase(TestCase):
     """
     Tests the CreateURLMappingView.
     """
 
+    @classmethod
+    def setUpClass(cls):
+        # The APIClient and the original url are used by all the tests in this class.
+        cls.client = APIClient()
+        cls.original_url = "https://ultimaker.com/en/knowledge/33-reducing-costs-and-improving-efficiency-with-the-ultimaker-s5"
+
     def setUp(self):
         """
         Define the test client and other test variables.
         """
-        self.client = APIClient()
-        self.original_url = "https://ultimaker.com/en/knowledge/33-reducing-costs-and-improving-efficiency-with-the-ultimaker-s5"
         self.input_data = {'original_url': self.original_url}
-
         self.post_response = self.client.post(
             reverse('create'),
             self.input_data,
@@ -27,10 +28,7 @@ class CreateURLMappingViewTestCase(TestCase):
 
     def test_can_create_a_url_mapping(self):
         self.assertEqual(self.post_response.status_code, status.HTTP_201_CREATED)
-        obj = URLMapping.objects.filter(original_url=self.original_url)
-        self.assertTrue(obj.exists())
-        self.assertEqual(obj.count(), 1)
-        self.assertEqual(obj.first().original_url, self.original_url)
+        self.assertEqual(self.post_response.data['short_code'], 'WkJKycfjnr')
 
     def test_duplicate_url_with_different_short_codes(self):
         duplicate_url_response = self.client.post(
@@ -38,23 +36,22 @@ class CreateURLMappingViewTestCase(TestCase):
             self.input_data,
             format='json'
         )
-        objects = URLMapping.objects.filter(original_url=self.original_url)
-        self.assertEqual(objects.count(), 2)
-        self.assertNotEqual(objects.first().short_code, objects.last().short_code)
+        self.assertEqual(duplicate_url_response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.post_response.data['short_code'], duplicate_url_response.data['short_code'])
 
     def test_rejects_wrong_url(self):
+        # Even though the code validates whether the url is correctly formatted, the exception comes
+        # from Django itself.
         self.post_response = self.client.post(
             reverse('create'),
-            {"original_url": "random string"},
+            {"original_url": "bad formatted url"},
             format='json'
         )
         self.assertEqual(self.post_response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_response_data_contains_only_short_code(self):
-        """
-        Tests whether the output json contains only the 'short_code' field.
-        """
-        self.assertEqual(list(self.post_response.data.keys()), ['short_code'])
+    @classmethod
+    def tearDownClass(cls):
+        pass
 
 
 class RedirectViewTestCase(TestCase):
@@ -92,8 +89,9 @@ class RedirectViewTestCase(TestCase):
             self.client.get(
                 reverse('redirect', kwargs={"short_code": self.post_response.data['short_code']})
             )
-        obj = URLMapping.objects.filter(short_code=self.post_response.data['short_code']).first()
-        self.assertEqual(obj.times_used, 10)
+        stats_response = self.client.get(
+            reverse('short-code-stats', kwargs={"short_code": self.post_response.data['short_code']}))
+        self.assertEqual(stats_response.data['times_used'], 10)
 
     def test_returns_404_on_non_existing_short_code(self):
         """

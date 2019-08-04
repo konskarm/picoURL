@@ -13,15 +13,14 @@ local environment, but in production too.
 * Use load balancers. 
 * Use Kubernetes to orchestrate the deployment of the application and keep the secrets there.
 * Possibly create custom HTTP error codes. For example, instead of returning 500 error
-if we ever encounter the maximum number of hash collisions, we can have an error 
-HTTP_555_MAX_HASHING_RETRIES_ENCOUNTERED 
-* Have different settings for production and development
-* Use the [Django checklist for production](https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/)
-* Use two databases, the default one and one for tests
-* Use Docker volumes to map the current database to the host machine 
+if we ever encounter the maximum number of hash collisions, we can have an error
+HTTP_555_MAX_HASHING_RETRIES_ENCOUNTERED.
+* Have different settings.py for production and development.
+* Use the [Django checklist for production](https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/).
+* Use Docker volumes to map the current database to the host machine, in order to keep it persistent 
 (if we consider SQLite for production).
 
 
 # Deploy the application on the cloud
-It's possible to deploy the application using the current setup, as long as the cloud server
-has docker installed. 
+With the assumption that the cloud server has docker installed, we can deploy the application 
+using the current setup, since it is containarized.

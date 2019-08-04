@@ -3,7 +3,10 @@ from django.db import models
 
 
 class URLMapping(models.Model):
-    """The URL Mapping model. """
+    """The URL Mapping model.
+    The min length validator can be removed, if we consider that in the future we may need
+    to have a dynamic size for the short_codes.
+    """
     short_code = models.CharField(
         max_length=12,
         primary_key=True,

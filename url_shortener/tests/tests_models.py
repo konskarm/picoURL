@@ -18,7 +18,9 @@ class URLMappingModelTestCase(TestCase):
 
     def test_model_can_create_a_URLMapping(self):
         """
-        Tests whether the
+        TODO we can test the model, but its functionality is already tested by Django. Does it make sense to keep it?
+        This is a sample of testing the model, but Django is already testing these functionalities
+        As my code does not have any functions inside the model, we do not really need to test anything.
         """
         old_count = URLMapping.objects.count()
         self.url_mapping.save()
